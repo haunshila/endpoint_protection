@@ -1,0 +1,4 @@
+agent_id = "my-first-epa-agent"
+check_interval_seconds = 30
+server_url = "http://your-central-server.com/api/telemetry" # Optional, will use default if commented out
+
