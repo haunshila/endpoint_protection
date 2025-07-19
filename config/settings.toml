@@ -2,3 +2,11 @@ agent_id = "my-first-epa-agent"
 check_interval_seconds = 30
 server_url = "http://your-central-server.com/api/telemetry" # Optional, will use default if commented out
 
+# Add paths to monitor for file system events.
+# Use forward slashes for cross-platform compatibility, or backslashes escaped for Windows (e.g., "C:\\Users\\YourUser\\Desktop")
+# Example:
+paths_to_monitor = [
+    # "./test_dir", # Create a 'test_dir' in your project root to try this out
+    # "/tmp",       # Linux example
+    # "C:/Users/Public/Documents" # Windows example (use forward slashes or escaped backslashes)
+]

@@ -27,7 +27,8 @@ serde_json = "1.0.141"
  reqwest = { version = "0.12.22", features = ["json", "rustls-tls"], default-features = false } # For HTTP client
 
 # For file system event monitoring (OS-specific, requires careful handling)
- notify = "8.1.0" # Cross-platform filesystem event notification library. Requires specific setup.
+notify = "8.1.0" # Cross-platform filesystem event notification library. Requires specific setup.
+notify-debouncer-full = "0.5.0" # For debouncing events, useful for reducing noise
 
 # For low-level network packet capture (requires elevated privileges)
  pnet = "0.35.0" # For network packet processing (requires specific setup and permissions)
