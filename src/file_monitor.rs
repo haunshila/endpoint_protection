@@ -1,17 +1,17 @@
 use log::{info, error, warn};
-use notify::{recommended_watcher, Event, EventKind, RecursiveMode, Watcher};
-use notify_debouncer_full::{new_debouncer, DebouncedEvent, Debouncer, FileIdMap}; // Re-added DebounceEvent
-use std::path::{Path, PathBuf};
-use std::time::Duration;
+use notify::{Event, EventKind, RecursiveMode};
+use notify_debouncer_full::{new_debouncer, DebouncedEvent, Debouncer, FileIdMap};
+use std::path::{PathBuf};
+use std::time::Duration; // Removed Instant
 use tokio::sync::mpsc; // For sending events to the main loop
 
 /// Represents a file system event that occurred.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)] // Added PartialEq and Eq for easier comparison in tests
 pub enum FileSystemEvent {
     Created(PathBuf),
     Deleted(PathBuf),
     Modified(PathBuf),
-    Renamed(PathBuf, PathBuf),
+    // Removed Renamed variant as it's no longer explicitly constructed
     Other(Event), // For events not directly mapped
 }
 
@@ -33,38 +33,38 @@ impl FileMonitor {
         let (tx_internal, rx_internal) = mpsc::channel(100); // Internal channel for debouncer to send events to
 
         // Create a debouncer with a 2-second debounce time
-        // Explicitly defining the debouncer's type to assist type inference for the closure.
         let debouncer: Debouncer<notify::RecommendedWatcher, FileIdMap> = new_debouncer(
             Duration::from_secs(2),
             None,
-            // Corrected closure argument type to match DebounceEventHandler trait
             move |result: Result<Vec<DebouncedEvent>, Vec<notify::Error>>| {
                 match result {
                     Ok(events) => {
-                        for event in events { // `event` is now `DebounceEvent`
-                            // Process each debounced event
-                            let fs_event = match event.event.kind { // Access kind via `event.event.kind`
+                        for event in events {
+                            let current_paths = event.paths.clone();
+                            let event_kind = &event.event.kind;
+
+                            let fs_event = match event_kind {
                                 EventKind::Create(_) => {
-                                    event.paths.first().map(|p| FileSystemEvent::Created(p.clone()))
+                                    current_paths.first().map(|p| FileSystemEvent::Created(p.clone()))
                                 },
                                 EventKind::Remove(_) => {
-                                    event.paths.first().map(|p| FileSystemEvent::Deleted(p.clone()))
+                                    current_paths.first().map(|p| FileSystemEvent::Deleted(p.clone()))
                                 },
                                 EventKind::Modify(_) => {
-                                    event.paths.first().map(|p| FileSystemEvent::Modified(p.clone()))
+                                    current_paths.first().map(|p| FileSystemEvent::Modified(p.clone()))
                                 },
-                                EventKind::Access(_) => { // Explicitly handle Access events
-                                    event.paths.first().map(|p| {
+                                EventKind::Access(_) => {
+                                    current_paths.first().map(|p| {
                                         info!("File accessed: {}", p.display());
-                                        FileSystemEvent::Other(event.event.clone()) // Clone inner `notify::Event`
+                                        FileSystemEvent::Other(event.event.clone())
                                     })
                                 },
-                                EventKind::Other => { // Explicitly handle Other events
-                                    Some(FileSystemEvent::Other(event.event.clone())) // Clone inner `notify::Event`
+                                EventKind::Other => {
+                                    Some(FileSystemEvent::Other(event.event.clone()))
                                 },
                                 _ => { // Catch-all for any remaining or future variants
-                                    warn!("Unhandled or unrecognized file system event kind: {:?}", event.event.kind); // Log inner kind
-                                    Some(FileSystemEvent::Other(event.event.clone())) // Clone inner `notify::Event`
+                                    warn!("Unhandled or unrecognized file system event kind: {:?}", event_kind);
+                                    Some(FileSystemEvent::Other(event.event.clone()))
                                 },
                             };
 

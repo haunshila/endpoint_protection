@@ -6,6 +6,10 @@ use tokio::sync::mpsc; // For inter-task communication
 mod file_monitor; // Declare the new file_monitor module
 use file_monitor::{FileMonitor, FileSystemEvent};
 
+// Conditionally compile the tests module only when running tests
+#[cfg(test)]
+mod tests; // Declare the tests module
+
 // A simple configuration struct
 #[derive(Debug, serde::Deserialize)]
 struct AgentConfig {
@@ -167,10 +171,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 //     FileSystemEvent::Deleted(path) => {
                 //         info!("File deleted: {}", path.display());
                 //     },
-                //     FileSystemEvent::Renamed(old_path, new_path) => {
-                //         info!("File renamed from {} to {}", old_path.display(), new_path.display());
-                //     },
-                //     FileSystemEvent::Other(event_details) => {
+                //     FileSystemEvent::Other(event_details) => { // Renamed removed
                 //         info!("Other FS event: {:?}", event_details);
                 //     }
                 // }
