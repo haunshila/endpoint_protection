@@ -1,44 +1,26 @@
 [package]
-name = "endpoint_protection"
+name = "endpoint_protection_agent"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-# For cross-platform system information (e.g., processes, disks)
-# You might need more specific OS-level crates for deeper monitoring.
-sysinfo = "0.36.1"
-
-# For logging
-log = "0.4.27"
-env_logger = "0.11.8"
-
-# For asynchronous operations (useful for non-blocking I/O, network communication)
-tokio = { version = "1.46.1", features = ["full"] }
-
-# For handling configuration files (e.g., agent settings)
-config = "0.15.13"
-
 # For serialization/deserialization (e.g., for communication with a server)
 serde = { version = "1.0.219", features = ["derive"] }
-serde_json = "1.0.141"
-
-# For secure communication (e.g., TLS)
- rustls = "0.23.29" # Consider if building custom TLS client
- reqwest = { version = "0.12.22", features = ["json", "rustls-tls"], default-features = false } # For HTTP client
 
 # For file system event monitoring (OS-specific, requires careful handling)
-notify = "8.1.0" # Cross-platform filesystem event notification library. Requires specific setup.
-notify-debouncer-full = "0.5.0" # For debouncing events, useful for reducing noise
+notify = "8.1.0"
+toml = "0.9.2" # Cross-platform filesystem event notification library. Requires specific setup.
 
-# For low-level network packet capture (requires elevated privileges)
- pnet = "0.35.0"
-tempfile = "3.20.0" # For network packet processing (requires specific setup and permissions)
+log = "0.4"
+env_logger = "0.11"
 
-# For interacting with the operating system at a lower level (platform-specific)
-# For Windows: winapi, windows-rs
-# For Linux: nix
-# For macOS: core-foundation, mach
 [dev-dependencies]
-tempfile = "3.20.0" # For creating temporary files/directories in tests
-test-log = "0.2.18" # For enabling logging in tests
-tokio = { version = "1.46.1", features = ["macros", "rt-multi-thread"] } # Explicitly add tokio for dev-dependencies
+tempfile = "3.20.0"
+
+[lib]
+name = "endpoint_protection_agent"
+path = "src/lib.rs"
+
+[[bin]]
+name = "endpoint_protection_agent"
+path = "src/main.rs"
