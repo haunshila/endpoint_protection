@@ -1,8 +1,8 @@
 
-fn main() {
-    env_logger::init(); // Initialize logging from environment
-
-    if let Err(e) = endpoint_protection_agent::main_logic() {
+#[tokio::main]
+async fn main() {
+    env_logger::init(); // Or tracing_subscriber
+    if let Err(e) = endpoint_protection_agent::main_logic().await {
         log::error!("Application error: {}", e);
     }
 }

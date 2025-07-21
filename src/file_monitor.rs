@@ -1,22 +1,19 @@
-use notify::{RecommendedWatcher, RecursiveMode, Watcher, Event};
+use notify::{Event, RecommendedWatcher, RecursiveMode, Watcher};
 use std::path::PathBuf;
-use std::sync::mpsc::{Sender};
+use tokio::sync::mpsc::Sender;
 use log::{info, error};
 
 pub fn monitor_directories(
     paths: &[String],
     tx: Sender<Event>,
 ) -> notify::Result<RecommendedWatcher> {
-    let mut watcher: RecommendedWatcher = notify::recommended_watcher({
+    let mut watcher = notify::recommended_watcher({
         let tx = tx.clone();
         move |res| {
-            match res {
-                Ok(event) => {
-                    if let Err(e) = tx.send(event) {
-                        error!("Failed to send event: {}", e);
-                    }
-                }
-                Err(e) => error!("Watcher error: {}", e),
+            if let Ok(event) = res {
+                let _ = tx.blocking_send(event);
+            } else if let Err(e) = res {
+                error!("Watcher error: {}", e);
             }
         }
     })?;
@@ -27,5 +24,5 @@ pub fn monitor_directories(
         info!("Started watching: {:?}", path);
     }
 
-    Ok(watcher) // Return to keep it alive in calling scope
+    Ok(watcher)
 }
